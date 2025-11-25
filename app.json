@@ -1,9 +1,10 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "ScapeAr Bern",
+    "slug": "scapear-bern",
     "version": "1.0.0",
     "orientation": "portrait",
+    "main": "./index.js",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
