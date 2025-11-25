@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getNextStop, validateStop, getUnlockedStops } from '../config/gameConfig';
 
 export const useGameStore = create(
   persist(
@@ -10,7 +11,13 @@ export const useGameStore = create(
       score: 0,
       level: 1,
       
-      // Estado de los puzzles
+      // Sistema de paradas y sellos
+      currentStopId: null,
+      completedStops: [],
+      unlockedStops: ['stop-1'], // Primer nivel desbloqueado
+      collectedSeals: [],
+      
+      // Estado de los puzzles (legacy - mantenido para compatibilidad)
       currentPuzzleId: null,
       completedPuzzles: [],
       puzzleAttempts: {},
@@ -29,7 +36,25 @@ export const useGameStore = create(
       
       resetScore: () => set({ score: 0 }),
       
-      // Acciones de puzzles
+      // Acciones del sistema de paradas
+      setCurrentStop: (stopId) => set({ currentStopId: stopId }),
+      
+      completeStop: (stopId, reward) => set((state) => {
+        const newCompletedStops = [...new Set([...state.completedStops, stopId])];
+        const newCollectedSeals = [...new Set([...state.collectedSeals, reward.seal])];
+        const newUnlockedStops = getUnlockedStops(newCompletedStops);
+        const nextStop = getNextStop(stopId);
+        
+        return {
+          completedStops: newCompletedStops,
+          collectedSeals: newCollectedSeals,
+          unlockedStops: newUnlockedStops,
+          score: state.score + reward.points,
+          currentStopId: nextStop ? nextStop.id : null,
+        };
+      }),
+      
+      // Acciones de puzzles (legacy - mantenido para compatibilidad)
       setCurrentPuzzle: (puzzleId) => set({ currentPuzzleId: puzzleId }),
       
       completePuzzle: (puzzleId, points = 10) => set((state) => ({
@@ -58,6 +83,10 @@ export const useGameStore = create(
       resetGame: () => set({
         score: 0,
         level: 1,
+        currentStopId: null,
+        completedStops: [],
+        unlockedStops: ['stop-1'],
+        collectedSeals: [],
         currentPuzzleId: null,
         completedPuzzles: [],
         puzzleAttempts: {},
